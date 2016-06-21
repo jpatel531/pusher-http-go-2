@@ -2,6 +2,7 @@ package pusher
 
 import (
 	"fmt"
+	"github.com/pusher/pusher/errors"
 	"regexp"
 	s "strings"
 )
@@ -25,7 +26,7 @@ func validateChannels(channels []string) (err error) {
 
 	if len(channelErrors) > 0 {
 		message := s.Join(channelErrors, ". ")
-		err = newError(message)
+		err = errors.New(message)
 	}
 
 	return
@@ -35,7 +36,7 @@ func validateSocketID(socketID *string) (err error) {
 	if (socketID == nil) || socketIDValidationRegex.MatchString(*socketID) {
 		return
 	}
-	return newError("socket_id invalid")
+	return errors.New("socket_id invalid")
 }
 
 func channelTooLong(channel string) string {

@@ -3,6 +3,7 @@ package pusher
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pusher/pusher/errors"
 	"net/url"
 )
 
@@ -28,12 +29,12 @@ func (p *PrivateChannelRequest) StringToSign() (unsigned string, err error) {
 	}
 
 	if channelNameWrapper, keyExists = params["channel_name"]; !keyExists || len(channelNameWrapper) == 0 {
-		err = newError("Channel param not found")
+		err = errors.New("Channel param not found")
 		return
 	}
 
 	if socketIDWrapper, keyExists = params["socket_id"]; !keyExists || len(socketIDWrapper) == 0 {
-		err = newError("Socket_id not found")
+		err = errors.New("Socket_id not found")
 		return
 	}
 

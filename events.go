@@ -2,6 +2,7 @@ package pusher
 
 import (
 	"encoding/json"
+	"github.com/pusher/pusher/errors"
 )
 
 type TriggerResponse struct {
@@ -9,13 +10,20 @@ type TriggerResponse struct {
 }
 
 type Event struct {
-	Name     string
-	Channels []string
-	Data     interface{}
-	SocketID *string
+	Name     string  `json:"name"`
+	Channel  string  `json:"channel"`
+	Data     string  `json:"data"`
+	SocketID *string `json:"socket_id,omitempty"`
 }
 
-type event struct {
+type eventAnyData struct {
+	Name     string      `json:"name"`
+	Channels []string    `json:"-"`
+	Data     interface{} `json:"data"`
+	SocketID *string     `json:"socket_id,omitempty"`
+}
+
+type eventStringData struct {
 	Name     string   `json:"name"`
 	Channels []string `json:"channels"`
 	Data     string   `json:"data"`
@@ -28,7 +36,7 @@ type batchRequest struct {
 
 const maxDataSize = 10240
 
-func (e *Event) toJSON() (body []byte, err error) {
+func (e *eventAnyData) toJSON() (body []byte, err error) {
 	var dataBytes []byte
 
 	switch d := e.Data.(type) {
@@ -43,11 +51,11 @@ func (e *Event) toJSON() (body []byte, err error) {
 	}
 
 	if len(dataBytes) > maxDataSize {
-		err = newError("Data must be smaller than 10kb")
+		err = errors.New("Data must be smaller than 10kb")
 		return
 	}
 
-	return json.Marshal(&event{
+	return json.Marshal(&eventStringData{
 		Name:     e.Name,
 		Channels: e.Channels,
 		SocketID: e.SocketID,

@@ -3,6 +3,7 @@ package requests
 import (
 	"bytes"
 	"fmt"
+	"github.com/pusher/pusher/errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -40,7 +41,7 @@ func (r *Request) Do(client *http.Client, u *url.URL, payload []byte) (responseB
 	}
 
 	if httpResponse.StatusCode != http.StatusOK {
-		err = fmt.Errorf("Status Code: %s - %s", httpResponse.Status, string(responseBody))
+		err = errors.New(fmt.Sprintf("Status Code: %s - %s", httpResponse.Status, string(responseBody)))
 	}
 	return
 }

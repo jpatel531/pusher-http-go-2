@@ -1,4 +1,4 @@
-package pusher
+package errors
 
 import (
 	"fmt"
@@ -6,6 +6,6 @@ import (
 
 const ERROR_TAG = "[pusher-http-go]"
 
-func newError(message string) error {
+func New(message string) error {
 	return fmt.Errorf("%s: %s", ERROR_TAG, message)
 }

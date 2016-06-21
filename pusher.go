@@ -3,6 +3,7 @@ package pusher
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pusher/pusher/errors"
 	"github.com/pusher/pusher/requests"
 	"github.com/pusher/pusher/signatures"
 	"net/http"
@@ -21,30 +22,8 @@ type Options struct {
 	HttpClient *http.Client
 }
 
-func New(appID, key, secret string) Client {
-	return &Pusher{
-		appID:  appID,
-		key:    key,
-		secret: secret,
-		Options: &Options{
-			Host:       "api.pusherapp.com",
-			Secure:     true,
-			HttpClient: &http.Client{Timeout: time.Second * 5},
-		},
-	}
-}
-
-func NewWithOptions(appID, key, secret string, options *Options) Client {
-	return &Pusher{
-		appID:   appID,
-		key:     key,
-		secret:  secret,
-		Options: options,
-	}
-}
-
 func (p *Pusher) Trigger(channel string, eventName string, data interface{}) (*TriggerResponse, error) {
-	event := &Event{
+	event := &eventAnyData{
 		Channels: []string{channel},
 		Name:     eventName,
 		Data:     data,
@@ -53,7 +32,7 @@ func (p *Pusher) Trigger(channel string, eventName string, data interface{}) (*T
 }
 
 func (p *Pusher) TriggerMulti(channels []string, eventName string, data interface{}) (*TriggerResponse, error) {
-	event := &Event{
+	event := &eventAnyData{
 		Channels: channels,
 		Name:     eventName,
 		Data:     data,
@@ -62,7 +41,7 @@ func (p *Pusher) TriggerMulti(channels []string, eventName string, data interfac
 }
 
 func (p *Pusher) TriggerExclusive(channel string, eventName string, data interface{}, socketID string) (*TriggerResponse, error) {
-	event := &Event{
+	event := &eventAnyData{
 		Channels: []string{channel},
 		Name:     eventName,
 		Data:     data,
@@ -72,7 +51,7 @@ func (p *Pusher) TriggerExclusive(channel string, eventName string, data interfa
 }
 
 func (p *Pusher) TriggerMultiExclusive(channels []string, eventName string, data interface{}, socketID string) (*TriggerResponse, error) {
-	event := &Event{
+	event := &eventAnyData{
 		Channels: channels,
 		Name:     eventName,
 		Data:     data,
@@ -81,14 +60,14 @@ func (p *Pusher) TriggerMultiExclusive(channels []string, eventName string, data
 	return p.trigger(event)
 }
 
-func (p *Pusher) trigger(event *Event) (response *TriggerResponse, err error) {
+func (p *Pusher) trigger(event *eventAnyData) (response *TriggerResponse, err error) {
 	var (
 		eventJSON    []byte
 		byteResponse []byte
 	)
 
 	if len(event.Channels) > 10 {
-		err = newError("You cannot trigger on more than 10 channels at once")
+		err = errors.New("You cannot trigger on more than 10 channels at once")
 		return
 	}
 
@@ -122,7 +101,7 @@ func (p *Pusher) TriggerBatch(batch []Event) (response *TriggerResponse, err err
 		batchJSON    []byte
 	)
 
-	if batchJSON, err = json.Marshal(&batch); err != nil {
+	if batchJSON, err = json.Marshal(&batchRequest{batch}); err != nil {
 		return
 	}
 
@@ -149,7 +128,6 @@ func (p *Pusher) Channels(additionalQueries map[string]string) (response *Channe
 		return
 	}
 
-	fmt.Println(string(byteResponse))
 	err = json.Unmarshal(byteResponse, &response)
 	return
 }
@@ -165,7 +143,7 @@ func (p *Pusher) Channel(name string, additionalQueries map[string]string) (resp
 	if byteResponse, err = p.sendRequest(requests.Channel, params); err != nil {
 		return
 	}
-	fmt.Println(string(byteResponse))
+
 	err = json.Unmarshal(byteResponse, &response)
 	return
 }
@@ -180,10 +158,9 @@ func (p *Pusher) ChannelUsers(name string) (response *UserList, err error) {
 	if byteResponse, err = p.sendRequest(requests.ChannelUsers, params); err != nil {
 		return
 	}
-	fmt.Println(string(byteResponse))
+
 	err = json.Unmarshal(byteResponse, &response)
 	return
-
 }
 
 func (p *Pusher) Authenticate(request AuthenticationRequest) (response []byte, err error) {
@@ -212,11 +189,19 @@ func (p *Pusher) Webhook(header http.Header, body []byte) (webhook *Webhook, err
 			return newWebhook(body)
 		}
 	}
-	err = newError("Invalid webhook")
+	err = errors.New("Invalid webhook")
 	return
+}
+
+func (p *Pusher) httpClient() *http.Client {
+	if p.HttpClient == nil {
+		p.HttpClient = &http.Client{Timeout: time.Second * 5}
+	}
+
+	return p.HttpClient
 }
 
 func (p *Pusher) sendRequest(request *requests.Request, params *requests.Params) (response []byte, err error) {
 	url := requestURL(p, request, params)
-	return request.Do(p.HttpClient, url, params.Body)
+	return request.Do(p.httpClient(), url, params.Body)
 }
