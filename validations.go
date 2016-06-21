@@ -24,7 +24,7 @@ func validateChannels(channels []string) (err error) {
 	}
 
 	if len(channelErrors) > 0 {
-		message := s.Join(channelErrors, ".")
+		message := s.Join(channelErrors, ". ")
 		err = newError(message)
 	}
 

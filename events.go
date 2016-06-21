@@ -2,7 +2,6 @@ package pusher
 
 import (
 	"encoding/json"
-	"errors"
 )
 
 type TriggerResponse struct {
@@ -27,6 +26,8 @@ type batchRequest struct {
 	Batch []Event `json:"batch"`
 }
 
+const maxDataSize = 10240
+
 func (e *Event) toJSON() (body []byte, err error) {
 	var dataBytes []byte
 
@@ -36,14 +37,13 @@ func (e *Event) toJSON() (body []byte, err error) {
 	case string:
 		dataBytes = []byte(d)
 	default:
-		dataBytes, err = json.Marshal(e.Data)
-		if err != nil {
+		if dataBytes, err = json.Marshal(e.Data); err != nil {
 			return
 		}
 	}
 
-	if len(dataBytes) > 10240 {
-		err = errors.New("Data must be smaller than 10kb")
+	if len(dataBytes) > maxDataSize {
+		err = newError("Data must be smaller than 10kb")
 		return
 	}
 
