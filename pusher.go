@@ -193,9 +193,17 @@ func (p *Pusher) Authenticate(request AuthenticationRequest) (response []byte, e
 	}
 	authSignature := signatures.HMAC(unsigned, p.secret)
 
-	return json.Marshal(map[string]string{
-		"auth": fmt.Sprintf("%s: %s", p.key, authSignature),
-	})
+	responseMap := map[string]string{
+		"auth": fmt.Sprintf("%s:%s", p.key, authSignature),
+	}
+	var userData string
+	if userData, err = request.UserData(); err != nil {
+		return
+	}
+	if userData != "" {
+		responseMap["channel_data"] = userData
+	}
+	return json.Marshal(responseMap)
 }
 
 func (p *Pusher) Webhook(header http.Header, body []byte) (webhook *Webhook, err error) {

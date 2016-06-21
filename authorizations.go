@@ -8,6 +8,7 @@ import (
 
 type AuthenticationRequest interface {
 	StringToSign() (string, error)
+	UserData() (string, error)
 }
 
 type PrivateChannelRequest struct {
@@ -38,13 +39,27 @@ func (p *PrivateChannelRequest) StringToSign() (unsigned string, err error) {
 
 	channelName := channelNameWrapper[0]
 	socketID := socketIDWrapper[0]
+
+	if err = validateSocketID(&socketID); err != nil {
+		return
+	}
+
 	unsigned = fmt.Sprintf("%s:%s", socketID, channelName)
+	return
+}
+
+func (p *PrivateChannelRequest) UserData() (userData string, err error) {
 	return
 }
 
 type PresenceChannelRequest struct {
 	Body   []byte
-	Member Member
+	Member *Member
+}
+
+type Member struct {
+	UserId   string            `json:"user_id"`
+	UserInfo map[string]string `json:"user_info,omitempty"`
 }
 
 func (p *PresenceChannelRequest) StringToSign() (unsigned string, err error) {
@@ -52,15 +67,20 @@ func (p *PresenceChannelRequest) StringToSign() (unsigned string, err error) {
 	if unsigned, err = privateChannelRequest.StringToSign(); err != nil {
 		return
 	}
-	var jsonUserData []byte
-	if jsonUserData, err = json.Marshal(p.Member); err != nil {
+	var userData string
+	if userData, err = p.UserData(); err != nil {
 		return
 	}
-	unsigned = fmt.Sprintf("%s:%s", unsigned, string(jsonUserData))
+
+	unsigned = fmt.Sprintf("%s:%s", unsigned, userData)
 	return
 }
 
-type Member struct {
-	UserId   string            `json:"user_id"`
-	UserInfo map[string]string `json:"user_info,omitempty"`
+func (p *PresenceChannelRequest) UserData() (userData string, err error) {
+	var userDataBytes []byte
+	if userDataBytes, err = json.Marshal(p.Member); err != nil {
+		return
+	}
+	userData = string(userDataBytes)
+	return
 }
