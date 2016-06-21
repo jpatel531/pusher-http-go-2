@@ -23,6 +23,10 @@ type event struct {
 	SocketID *string  `json:"socket_id,omitempty"`
 }
 
+type batchRequest struct {
+	Batch []Event `json:"batch"`
+}
+
 func (e *Event) toJSON() (body []byte, err error) {
 	var dataBytes []byte
 

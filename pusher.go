@@ -53,19 +53,32 @@ func (p *Pusher) Trigger(channel string, eventName string, data interface{}) (*T
 }
 
 func (p *Pusher) TriggerMulti(channels []string, eventName string, data interface{}) (*TriggerResponse, error) {
-	return &TriggerResponse{}, nil
+	event := &Event{
+		Channels: channels,
+		Name:     eventName,
+		Data:     data,
+	}
+	return p.trigger(event)
 }
 
 func (p *Pusher) TriggerExclusive(channel string, eventName string, data interface{}, socketID string) (*TriggerResponse, error) {
-	return &TriggerResponse{}, nil
+	event := &Event{
+		Channels: []string{channel},
+		Name:     eventName,
+		Data:     data,
+		SocketID: &socketID,
+	}
+	return p.trigger(event)
 }
 
 func (p *Pusher) TriggerMultiExclusive(channels []string, eventName string, data interface{}, socketID string) (*TriggerResponse, error) {
-	return &TriggerResponse{}, nil
-}
-
-func (p *Pusher) TriggerBatch(batch []Event) (*TriggerResponse, error) {
-	return &TriggerResponse{}, nil
+	event := &Event{
+		Channels: channels,
+		Name:     eventName,
+		Data:     data,
+		SocketID: &socketID,
+	}
+	return p.trigger(event)
 }
 
 func (p *Pusher) trigger(event *Event) (response *TriggerResponse, err error) {
@@ -96,6 +109,28 @@ func (p *Pusher) trigger(event *Event) (response *TriggerResponse, err error) {
 	}
 
 	if byteResponse, err = p.sendRequest(requests.Trigger, params); err != nil {
+		return
+	}
+
+	err = json.Unmarshal(byteResponse, &response)
+	return
+}
+
+func (p *Pusher) TriggerBatch(batch []Event) (response *TriggerResponse, err error) {
+	var (
+		byteResponse []byte
+		batchJSON    []byte
+	)
+
+	if batchJSON, err = json.Marshal(&batch); err != nil {
+		return
+	}
+
+	params := &requests.Params{
+		Body: batchJSON,
+	}
+
+	if byteResponse, err = p.sendRequest(requests.TriggerBatch, params); err != nil {
 		return
 	}
 
