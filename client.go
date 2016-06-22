@@ -1,6 +1,7 @@
 package pusher
 
 import (
+	"github.com/pusher/pusher/authentications"
 	"net/http"
 )
 
@@ -15,7 +16,8 @@ type Client interface {
 	Channel(name string, additionalQueries map[string]string) (*Channel, error)
 	ChannelUsers(name string) (*UserList, error)
 
-	Authenticate(request AuthenticationRequest) (response []byte, err error)
+	AuthenticatePrivateChannel(body []byte) (response []byte, err error)
+	AuthenticatePresenceChannel(body []byte, member authentications.Member) (response []byte, err error)
 
 	Webhook(header http.Header, body []byte) (*Webhook, error)
 }

@@ -3,9 +3,11 @@ package pusher
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/pusher/pusher/authentications"
 	"github.com/pusher/pusher/errors"
 	"github.com/pusher/pusher/requests"
 	"github.com/pusher/pusher/signatures"
+	"github.com/pusher/pusher/validate"
 	"net/http"
 	"time"
 )
@@ -71,11 +73,11 @@ func (p *Pusher) trigger(event *eventAnyData) (response *TriggerResponse, err er
 		return
 	}
 
-	if err = validateChannels(event.Channels); err != nil {
+	if err = validate.Channels(event.Channels); err != nil {
 		return
 	}
 
-	if err = validateSocketID(event.SocketID); err != nil {
+	if err = validate.SocketID(event.SocketID); err != nil {
 		return
 	}
 
@@ -163,7 +165,15 @@ func (p *Pusher) ChannelUsers(name string) (response *UserList, err error) {
 	return
 }
 
-func (p *Pusher) Authenticate(request AuthenticationRequest) (response []byte, err error) {
+func (p *Pusher) AuthenticatePrivateChannel(body []byte) (response []byte, err error) {
+	return p.authenticate(&authentications.PrivateChannel{Body: body})
+}
+
+func (p *Pusher) AuthenticatePresenceChannel(body []byte, member authentications.Member) (response []byte, err error) {
+	return p.authenticate(&authentications.PresenceChannel{Body: body, Member: member})
+}
+
+func (p *Pusher) authenticate(request authentications.Request) (response []byte, err error) {
 	var unsigned string
 	if unsigned, err = request.StringToSign(); err != nil {
 		return

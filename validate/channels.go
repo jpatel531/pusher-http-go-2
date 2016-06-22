@@ -1,4 +1,4 @@
-package pusher
+package validate
 
 import (
 	"fmt"
@@ -8,9 +8,8 @@ import (
 )
 
 var channelValidationRegex = regexp.MustCompile("^[-a-zA-Z0-9_=@,.;]+$")
-var socketIDValidationRegex = regexp.MustCompile(`\A\d+\.\d+\z`)
 
-func validateChannels(channels []string) (err error) {
+func Channels(channels []string) (err error) {
 	channelErrors := []string{}
 	for _, channel := range channels {
 		if len(channel) > 200 {
@@ -30,13 +29,6 @@ func validateChannels(channels []string) (err error) {
 	}
 
 	return
-}
-
-func validateSocketID(socketID *string) (err error) {
-	if (socketID == nil) || socketIDValidationRegex.MatchString(*socketID) {
-		return
-	}
-	return errors.New("socket_id invalid")
 }
 
 func channelTooLong(channel string) string {
