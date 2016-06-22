@@ -32,9 +32,9 @@ func Channels(channels []string) (err error) {
 }
 
 func channelTooLong(channel string) string {
-	return fmt.Sprintf("%s is over 200 characters.", channel)
+	return fmt.Sprintf("%s is over 200 characters", channel)
 }
 
 func channelHasIllegalCharacters(channel string) string {
-	return fmt.Sprintf("%s has illegal characters.", channel)
+	return fmt.Sprintf("%s has illegal characters", channel)
 }

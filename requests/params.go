@@ -3,8 +3,6 @@ package requests
 import (
 	"github.com/pusher/pusher/signatures"
 	"net/url"
-	"strconv"
-	"time"
 )
 
 type Params struct {
@@ -18,7 +16,7 @@ const authVersion = "1.0"
 func (p *Params) URLValues(key string) (values *url.Values) {
 	values = &url.Values{
 		"auth_key":       {key},
-		"auth_timestamp": {strconv.FormatInt(time.Now().Unix(), 10)},
+		"auth_timestamp": {authClock.Now()},
 		"auth_version":   {authVersion},
 	}
 

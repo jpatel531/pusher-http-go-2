@@ -17,6 +17,8 @@ func (p *PrivateChannel) StringToSign() (unsigned string, err error) {
 		keyExists          bool
 		channelNameWrapper []string
 		socketIDWrapper    []string
+		channelName        string
+		socketID           string
 	)
 
 	if params, err = url.ParseQuery(string(p.Body)); err != nil {
@@ -33,9 +35,12 @@ func (p *PrivateChannel) StringToSign() (unsigned string, err error) {
 		return
 	}
 
-	channelName := channelNameWrapper[0]
-	socketID := socketIDWrapper[0]
+	if channelName = channelNameWrapper[0]; len(channelName) == 0 {
+		err = errors.New("Channel name cannot be blank")
+		return
+	}
 
+	socketID = socketIDWrapper[0]
 	if err = validate.SocketID(&socketID); err != nil {
 		return
 	}
