@@ -9,6 +9,7 @@ import (
 	"github.com/pusher/pusher/signatures"
 	"github.com/pusher/pusher/validate"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -212,6 +213,9 @@ func (p *Pusher) httpClient() *http.Client {
 }
 
 func (p *Pusher) sendRequest(request *requests.Request, params *requests.Params) (response []byte, err error) {
-	url := requestURL(p, request, params)
-	return request.Do(p.httpClient(), url, params.Body)
+	var u *url.URL
+	if u, err = requestURL(p, request, params); err != nil {
+		return
+	}
+	return request.Do(p.httpClient(), u, params.Body)
 }

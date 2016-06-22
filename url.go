@@ -2,18 +2,14 @@ package pusher
 
 import (
 	"fmt"
+	"github.com/pusher/pusher/errors"
 	"github.com/pusher/pusher/requests"
 	"github.com/pusher/pusher/signatures"
 	"net/url"
 	s "strings"
 )
 
-func unescapeURL(values *url.Values) string {
-	unesc, _ := url.QueryUnescape(values.Encode())
-	return unesc
-}
-
-func requestURL(p *Pusher, request *requests.Request, params *requests.Params) *url.URL {
+func requestURL(p *Pusher, request *requests.Request, params *requests.Params) (u *url.URL, err error) {
 	values := params.URLValues(p.key)
 
 	var path string
@@ -23,7 +19,14 @@ func requestURL(p *Pusher, request *requests.Request, params *requests.Params) *
 		path = fmt.Sprintf(request.PathPattern, p.appID)
 	}
 
-	unsigned := s.Join([]string{request.Method, path, unescapeURL(values)}, "\n")
+	var urlUnescaped string
+	encodedURLValues := values.Encode()
+	if urlUnescaped, err = url.QueryUnescape(encodedURLValues); err != nil {
+		err = errors.New(fmt.Sprintf("%s could not be unescaped - %v", encodedURLValues, err))
+		return
+	}
+
+	unsigned := s.Join([]string{request.Method, path, urlUnescaped}, "\n")
 	signed := signatures.HMAC(unsigned, p.secret)
 	values.Add("auth_signature", signed)
 
@@ -42,10 +45,11 @@ func requestURL(p *Pusher, request *requests.Request, params *requests.Params) *
 		scheme = "https"
 	}
 
-	return &url.URL{
+	u = &url.URL{
 		Scheme:   scheme,
 		Host:     host,
 		Path:     path,
 		RawQuery: values.Encode(),
 	}
+	return
 }
