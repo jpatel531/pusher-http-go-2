@@ -51,5 +51,6 @@ func requestURL(p *Pusher, request *requests.Request, params *requests.Params) (
 		Path:     path,
 		RawQuery: values.Encode(),
 	}
+
 	return
 }

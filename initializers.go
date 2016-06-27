@@ -12,19 +12,21 @@ func New(appID, key, secret string) Client {
 		appID:  appID,
 		key:    key,
 		secret: secret,
-		Options: &Options{
+		Options: Options{
 			Host:   "api.pusherapp.com",
 			Secure: true,
 		},
+		dispatcher: defaultDispatcher{},
 	}
 }
 
-func NewWithOptions(appID, key, secret string, options *Options) Client {
+func NewWithOptions(appID, key, secret string, options Options) Client {
 	return &Pusher{
-		appID:   appID,
-		key:     key,
-		secret:  secret,
-		Options: options,
+		appID:      appID,
+		key:        key,
+		secret:     secret,
+		Options:    options,
+		dispatcher: defaultDispatcher{},
 	}
 }
 
@@ -67,7 +69,7 @@ func NewFromURL(rawURL string) (client Client, err error) {
 
 	secure = u.Scheme == "https"
 
-	client = NewWithOptions(appID, key, secret, &Options{
+	client = NewWithOptions(appID, key, secret, Options{
 		Secure: secure,
 		Host:   host,
 	})

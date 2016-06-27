@@ -9,13 +9,13 @@ import (
 	"github.com/pusher/pusher/signatures"
 	"github.com/pusher/pusher/validate"
 	"net/http"
-	"net/url"
 	"time"
 )
 
 type Pusher struct {
 	appID, key, secret string
-	*Options
+	dispatcher
+	Options
 }
 
 type Options struct {
@@ -90,7 +90,7 @@ func (p *Pusher) trigger(event *eventAnyData) (response *TriggerResponse, err er
 		Body: eventJSON,
 	}
 
-	if byteResponse, err = p.sendRequest(requests.Trigger, params); err != nil {
+	if byteResponse, err = p.sendRequest(p, requests.Trigger, params); err != nil {
 		return
 	}
 
@@ -112,7 +112,7 @@ func (p *Pusher) TriggerBatch(batch []Event) (response *TriggerResponse, err err
 		Body: batchJSON,
 	}
 
-	if byteResponse, err = p.sendRequest(requests.TriggerBatch, params); err != nil {
+	if byteResponse, err = p.sendRequest(p, requests.TriggerBatch, params); err != nil {
 		return
 	}
 
@@ -127,7 +127,7 @@ func (p *Pusher) Channels(additionalQueries map[string]string) (response *Channe
 		Queries: additionalQueries,
 	}
 
-	if byteResponse, err = p.sendRequest(requests.Channels, params); err != nil {
+	if byteResponse, err = p.sendRequest(p, requests.Channels, params); err != nil {
 		return
 	}
 
@@ -143,7 +143,7 @@ func (p *Pusher) Channel(name string, additionalQueries map[string]string) (resp
 		Queries: additionalQueries,
 	}
 
-	if byteResponse, err = p.sendRequest(requests.Channel, params); err != nil {
+	if byteResponse, err = p.sendRequest(p, requests.Channel, params); err != nil {
 		return
 	}
 
@@ -158,7 +158,7 @@ func (p *Pusher) ChannelUsers(name string) (response *UserList, err error) {
 		Channel: name,
 	}
 
-	if byteResponse, err = p.sendRequest(requests.ChannelUsers, params); err != nil {
+	if byteResponse, err = p.sendRequest(p, requests.ChannelUsers, params); err != nil {
 		return
 	}
 
@@ -210,12 +210,4 @@ func (p *Pusher) httpClient() *http.Client {
 	}
 
 	return p.HttpClient
-}
-
-func (p *Pusher) sendRequest(request *requests.Request, params *requests.Params) (response []byte, err error) {
-	var u *url.URL
-	if u, err = requestURL(p, request, params); err != nil {
-		return
-	}
-	return request.Do(p.httpClient(), u, params.Body)
 }

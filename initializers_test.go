@@ -9,7 +9,7 @@ import (
 func TestInitialisationFromURL(t *testing.T) {
 	url := "http://feaf18a411d3cb9216ee:fec81108d90e1898e17a@api.pusherapp.com/apps/104060"
 	client, _ := NewFromURL(url)
-	expectedClient := NewWithOptions("104060", "feaf18a411d3cb9216ee", "fec81108d90e1898e17a", &Options{Host: "api.pusherapp.com"})
+	expectedClient := NewWithOptions("104060", "feaf18a411d3cb9216ee", "fec81108d90e1898e17a", Options{Host: "api.pusherapp.com"})
 	assert.ObjectsAreEqual(expectedClient, client)
 }
 
@@ -36,6 +36,6 @@ func TestURLInitErrorNoID(t *testing.T) {
 func TestInitialisationFromENV(t *testing.T) {
 	os.Setenv("PUSHER_URL", "http://feaf18a411d3cb9216ee:fec81108d90e1898e17a@api.pusherapp.com/apps/104060")
 	client, _ := NewFromEnv("PUSHER_URL")
-	expectedClient := NewWithOptions("104060", "feaf18a411d3cb9216ee", "fec81108d90e1898e17a", &Options{Host: "api.pusherapp.com"})
+	expectedClient := NewWithOptions("104060", "feaf18a411d3cb9216ee", "fec81108d90e1898e17a", Options{Host: "api.pusherapp.com"})
 	assert.Equal(t, expectedClient, client)
 }
