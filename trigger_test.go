@@ -1,8 +1,8 @@
 package pusher
 
 import (
-	// "github.com/stretchr/testify/assert"
 	"github.com/pusher/pusher/requests"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
 )
@@ -33,6 +33,8 @@ func TestSimpleTrigger(t *testing.T) {
 		On("sendRequest", p, requests.Trigger, expectedParams).
 		Return([]byte("{}"), nil)
 
-	p.Trigger("test-channel", "my-event", "data")
+	_, err := p.Trigger("test-channel", "my-event", "data")
+	assert.NoError(t, err)
+
 	mDispatcher.AssertExpectations(t)
 }

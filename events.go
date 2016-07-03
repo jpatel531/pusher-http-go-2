@@ -16,18 +16,11 @@ type Event struct {
 	SocketID *string `json:"socket_id,omitempty"`
 }
 
-type eventAnyData struct {
+type event struct {
 	Name     string      `json:"name"`
 	Channels []string    `json:"-"`
 	Data     interface{} `json:"data"`
 	SocketID *string     `json:"socket_id,omitempty"`
-}
-
-type eventStringData struct {
-	Name     string   `json:"name"`
-	Channels []string `json:"channels"`
-	Data     string   `json:"data"`
-	SocketID *string  `json:"socket_id,omitempty"`
 }
 
 type batchRequest struct {
@@ -36,29 +29,34 @@ type batchRequest struct {
 
 const maxDataSize = 10240
 
-func (e *eventAnyData) toJSON() (body []byte, err error) {
-	var dataBytes []byte
+func (e *event) MarshalJSON() (body []byte, err error) {
+	var dataJSON []byte
 
 	switch d := e.Data.(type) {
 	case []byte:
-		dataBytes = d
+		dataJSON = d
 	case string:
-		dataBytes = []byte(d)
+		dataJSON = []byte(d)
 	default:
-		if dataBytes, err = json.Marshal(e.Data); err != nil {
+		if dataJSON, err = json.Marshal(d); err != nil {
 			return
 		}
 	}
 
-	if len(dataBytes) > maxDataSize {
+	if len(dataJSON) > maxDataSize {
 		err = errors.New("Data must be smaller than 10kb")
 		return
 	}
 
-	return json.Marshal(&eventStringData{
+	return json.Marshal(&struct {
+		Name     string   `json:"name"`
+		Channels []string `json:"channels"`
+		Data     string   `json:"data"`
+		SocketID *string  `json:"socket_id,omitempty"`
+	}{
 		Name:     e.Name,
 		Channels: e.Channels,
+		Data:     string(dataJSON),
 		SocketID: e.SocketID,
-		Data:     string(dataBytes),
 	})
 }

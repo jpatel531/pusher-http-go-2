@@ -26,7 +26,7 @@ type Options struct {
 }
 
 func (p *Pusher) Trigger(channel string, eventName string, data interface{}) (*TriggerResponse, error) {
-	event := &eventAnyData{
+	event := &event{
 		Channels: []string{channel},
 		Name:     eventName,
 		Data:     data,
@@ -35,7 +35,7 @@ func (p *Pusher) Trigger(channel string, eventName string, data interface{}) (*T
 }
 
 func (p *Pusher) TriggerMulti(channels []string, eventName string, data interface{}) (*TriggerResponse, error) {
-	event := &eventAnyData{
+	event := &event{
 		Channels: channels,
 		Name:     eventName,
 		Data:     data,
@@ -44,7 +44,7 @@ func (p *Pusher) TriggerMulti(channels []string, eventName string, data interfac
 }
 
 func (p *Pusher) TriggerExclusive(channel string, eventName string, data interface{}, socketID string) (*TriggerResponse, error) {
-	event := &eventAnyData{
+	event := &event{
 		Channels: []string{channel},
 		Name:     eventName,
 		Data:     data,
@@ -54,7 +54,7 @@ func (p *Pusher) TriggerExclusive(channel string, eventName string, data interfa
 }
 
 func (p *Pusher) TriggerMultiExclusive(channels []string, eventName string, data interface{}, socketID string) (*TriggerResponse, error) {
-	event := &eventAnyData{
+	event := &event{
 		Channels: channels,
 		Name:     eventName,
 		Data:     data,
@@ -63,7 +63,7 @@ func (p *Pusher) TriggerMultiExclusive(channels []string, eventName string, data
 	return p.trigger(event)
 }
 
-func (p *Pusher) trigger(event *eventAnyData) (response *TriggerResponse, err error) {
+func (p *Pusher) trigger(event *event) (response *TriggerResponse, err error) {
 	var (
 		eventJSON    []byte
 		byteResponse []byte
@@ -82,7 +82,7 @@ func (p *Pusher) trigger(event *eventAnyData) (response *TriggerResponse, err er
 		return
 	}
 
-	if eventJSON, err = event.toJSON(); err != nil {
+	if eventJSON, err = json.Marshal(event); err != nil {
 		return
 	}
 
