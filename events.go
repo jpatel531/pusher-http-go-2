@@ -10,10 +10,10 @@ type TriggerResponse struct {
 }
 
 type Event struct {
-	Name     string  `json:"name"`
-	Channel  string  `json:"channel"`
-	Data     string  `json:"data"`
-	SocketID *string `json:"socket_id,omitempty"`
+	Name     string `json:"name"`
+	Channel  string `json:"channel"`
+	Data     string `json:"data"`
+	SocketID string `json:"socket_id,omitempty"`
 }
 
 type event struct {
